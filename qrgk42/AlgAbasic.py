@@ -162,15 +162,15 @@ else:
 ############ YOU NEED TO INCLUDE THE FOLLOWING PARAMETERS:                                 ############
 ############ "my_user_name" = your user-name, e.g., mine is dcs0ias                        ############
 
-my_user_name = "dcs0ias"
+my_user_name = "qrgk42"
 
 ############ "my_first_name" = your first name, e.g., mine is Iain                         ############
 
-my_first_name = "Iain"
+my_first_name = "Zac"
 
 ############ "my_last_name" = your last name, e.g., mine is Stewart                        ############
 
-my_last_name = "Stewart"
+my_last_name = "Robinson"
 
 ############ "alg_code" = the two-digit code that tells me which algorithm you have        ############
 ############ implemented (see the assignment pdf), where the codes are:                    ############
@@ -184,7 +184,7 @@ my_last_name = "Stewart"
 ############    SA = simulated annealing search                                            ############
 ############    GA = genetic algorithm                                                     ############
 
-alg_code = "BG"
+alg_code = "AS"
 
 ############ you can also add a note that will be added to the end of the output file if   ############
 ############ you like, e.g., "in my basic greedy search, I broke ties by always visiting   ############
