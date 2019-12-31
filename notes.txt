@@ -1,0 +1,89 @@
+Sophistication (/10): Highest tariff of the correct (legal tour) basic algorithms
+Correctness (/4): 4 marks if both algorithms produce a legal tour for both secret city sets (~40, ~100), 0 otherwise
+Enhancement (/3, /3): How innovative the enhanced versions are compared to the basic versions
+Quality (/10):
+    Basic quality (/8): Best tour overall for each city set (but give best tours found from both algorithms A and B)
+    Enhanced quality (/2): How well enhanced algorithms perform compared to basic algorithms
+    
+    
+    
+    
+012     1
+017     2
+021     2
+026     2
+042     3
+048     3
+058     3
+175     5
+180     
+535     
+
+
+
+
+best node source: fringe or deepest_nodes. rush at 100sec
+
+File    deepest@100sec          Score(fringe@100sec)
+012     56                      56
+017     1883                    2438
+021     3629                    3981
+026     1942                    1964
+042     1728                    1769
+048     17224                   16444
+058     30706                   30793
+175     22519                   22419
+180     8890                    25410
+535     50268                   50278
+
+ENHANCEMENTS FOR A* SEARCH: 
+
+
+ENHANCED A* SEARCH RESULTS:
+File    Tourlength      Time
+012     56              0:00:00.015622
+017     1593            0:00:00.015645
+021     3023            0:00:00.015555
+026     1741 -> 1659?   0:00:00.185651
+042     1414 -> 1397?   0:00:00.347682
+048     15249 -> 14639? 0:00:00.653152
+058     27664           0:00:08.561164 --> 0:00:01.399622
+175     22091 -> 21917  0:01:44.844717 --> 0:01:05.212416
+180     5460            0:01:44.401506 --> 0:01:51.320510
+535     50239 -> 50236  0:11:38.908758 --> 0:02:27.285713
+
+
+BASIC A* SEARCH RESULTS:
+File    Tourlength      Time
+012     56              0:00:00.015622
+017     1628            0:00:00.015645
+021     3023            0:00:00.015555
+026     1681            0:00:00.185651
+042     1414            0:00:00.347682
+048     15249           0:00:00.653152
+058     27664           0:00:08.561164
+175     22140           0:01:44.844717
+180     8890            0:01:44.401506
+535     50239           0:11:38.908758
+
+python AlgAbasic.py AISearchfile012.txt; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py AISearchfile017.txt; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py AISearchfile021.txt; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py AISearchfile026.txt; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py AISearchfile042.txt; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py AISearchfile048.txt; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py AISearchfile058.txt; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py AISearchfile175.txt; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py AISearchfile180.txt; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py AISearchfile535.txt; echo ""; echo ""; SLEEP 2
+
+python AlgAenhanced.py AISearchfile012.txt; echo ""; echo ""; SLEEP 2;
+python AlgAenhanced.py AISearchfile017.txt; echo ""; echo ""; SLEEP 2;
+python AlgAenhanced.py AISearchfile021.txt; echo ""; echo ""; SLEEP 2;
+python AlgAenhanced.py AISearchfile026.txt; echo ""; echo ""; SLEEP 2;
+python AlgAenhanced.py AISearchfile042.txt; echo ""; echo ""; SLEEP 2;
+python AlgAenhanced.py AISearchfile048.txt; echo ""; echo ""; SLEEP 2;
+python AlgAenhanced.py AISearchfile058.txt; echo ""; echo ""; SLEEP 2;
+python AlgAenhanced.py AISearchfile175.txt; echo ""; echo ""; SLEEP 2;
+python AlgAenhanced.py AISearchfile180.txt; echo ""; echo ""; SLEEP 2;
+python AlgAenhanced.py AISearchfile535.txt; echo ""; echo ""; SLEEP 2

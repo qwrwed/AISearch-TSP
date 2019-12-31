@@ -1,0 +1,10 @@
+python AlgAbasic.py "AISearchfile012.txt"; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py "AISearchfile017.txt"; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py "AISearchfile021.txt"; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py "AISearchfile026.txt"; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py "AISearchfile042.txt"; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py "AISearchfile048.txt"; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py "AISearchfile058.txt"; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py "AISearchfile175.txt"; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py "AISearchfile180.txt"; echo ""; echo ""; SLEEP 2;
+python AlgAbasic.py "AISearchfile535.txt"s; echo ""; echo ""; SLEEP 2

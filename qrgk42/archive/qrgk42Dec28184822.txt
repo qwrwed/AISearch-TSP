@@ -1,0 +1,4 @@
+USER = qrgk42 (Zac Robinson)
+ALGORITHM = BG, FILENAME = AISearchfile012
+NUMBER OF CITIES = 4, TOUR LENGTH = 97
+0,1,2,3

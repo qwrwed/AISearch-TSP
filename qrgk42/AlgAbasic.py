@@ -184,13 +184,13 @@ my_last_name = "Robinson"
 ############    SA = simulated annealing search                                            ############
 ############    GA = genetic algorithm                                                     ############
 
-alg_code = "BG"
+alg_code = "AS"
 
 ############ you can also add a note that will be added to the end of the output file if   ############
 ############ you like, e.g., "in my basic greedy search, I broke ties by always visiting   ############
 ############ the first nearest city found" or leave it empty if you wish                   ############
 
-added_note = ""
+added_note = "If no solution has been found after rush_start_time seconds (default 100), a greedy method will be used to complete the tour from the node on the fringe with the lowest f-value"
 
 ############ the line below sets up a dictionary of codes and search names (you need do    ############
 ############ nothing unless you implement an alternative algorithm and I give you a code   ############
@@ -209,40 +209,11 @@ codes_and_names = {'BF' : 'brute-force search',
 #######################################################################################################
 ############    now the code for your algorithm should begin                               ############
 #######################################################################################################
-"""
-distance_matrix = [
-    [ 0, 20, 42, 35, 24, 43],
-    [20,  0, 30, 34, 67, 73],
-    [42, 30,  0, 12, 54, 96],
-    [35, 34, 12,  0, 45, 32],
-    [24, 67, 54, 45,  0, 68],
-    [43, 73, 96, 32, 68,  0]
-]
-num_cities = len(distance_matrix)
-print(distance_matrix)"""
 
 import math
 import operator
-
-def is_goal_node(node):
-    #s = sorted(node.state)
-    #l = list(range(num_cities))
-    #if s == l:
-    #    return True
-    return len(node.state) == num_cities
         
-
-def continue_shortest_tour(fringe):
-    path_cost = math.inf
-    chosen_node_index = None
-    for node_index in range(len(fringe)):
-        if fringe[node_index]["path_cost"] < path_cost:
-            path_cost = fringe[node_index]["path_cost"]
-            chosen_node_index = node_index
-    return chosen_node_index
-
-def choose_closest_deepest(fringe):
-    
+def choose_closest_deepest(fringe):    
     fringe_sorted = fringe[:]
     # prioritise sorting by depth descending over path cost ascending
     fringe_sorted.sort(key=operator.attrgetter("path_cost"), reverse=False)
@@ -251,59 +222,15 @@ def choose_closest_deepest(fringe):
     new_node_index = fringe.index(new_node)
     return new_node_index
 
-
-def choose_LIFO(fringe):
-    return len(fringe) - 1
-
-def choose_FIFO(fringe):
-    return 0
-
-#@profile
 def choose_lowest_f(fringe):
-
-    #current_time = time.time()
-    #for node in fringe:
-        #node.age = current_time - node.time_created
-        #node.f = node.g + node.h + node.age
-    lowest_f = math.inf
-    #return min(range(len(fringe)), key=fringe.__getitem__.f)
     return fringe.index(min(fringe, key=operator.attrgetter("f")))
-    #return min(range(len(fringe)), key=lambda i: fringe[i].f)
-    #return min(enumerate(fringe), key=lambda x: x[1].f)[0]
-    
-    #input()
-
-    #for node_index in range(len(fringe)):
-        #if fringe[node_index].f < lowest_f:
-            #lowest_f = fringe[node_index].f
-            #lowest_f_index = node_index
-    #return lowest_f_index
-
 
 def choose_node(fringe, rush_mode=False):        
-    # return continue_shortest_tour(fringe) # takes too long
-    #return choose_depth_first(fringe)
-    #return choose_breadth_first(fringe)
-    #return choose_LIFO(fringe)
-    #return choose_closest_deepest(fringe)
-    #print("CHOOSING NODE - CHOICES:")
-    #for node in fringe:
-        #node.print()
-#    node_chosen = 
-    #print("CHOSEN NODE:")
-    #fringe[node_chosen].print()
-    #input()
     if not rush_mode:
         return choose_lowest_f(fringe)
     else:
         return choose_closest_deepest(fringe)
 
-
-def emergency_choose_node(fringe):
-    #return choose_closest_deepest(fringe)
-    return 0
-
-@profile
 def get_all_unvisited_nodes(fringe, chosen_node):
     unvisited_cities = [city for city in range(num_cities) if city not in chosen_node.state]
     current_city_number = chosen_node.state[-1]
@@ -331,20 +258,13 @@ def get_nearest_unvisited_node(fringe, chosen_node):
     new_node_depth = chosen_node.depth + 1
     new_node = Node(new_node_state, new_node_path_cost, new_node_depth)
     return [new_node]
-@profile
+
 def get_next_nodes(fringe, chosen_node, rush_mode=False):
-    #return get_nearest_unvisited_node(fringe, chosen_node)
     if not rush_mode:
         return get_all_unvisited_nodes(fringe, chosen_node)
     else:
         return get_nearest_unvisited_node(fringe, chosen_node)
 
-
-def emergency_get_next_nodes(fringe, chosen_node):
-    #return get_nearest_unvisited_node(fringe, chosen_node)
-    return get_nearest_unvisited_node(fringe, chosen_node)
-
-#@profile
 def h_nearest_neighbour_distance(node):
     closest_distance = math.inf
     current_city = node.state[-1]
@@ -355,7 +275,6 @@ def h_nearest_neighbour_distance(node):
         closest_distance = 0
     return closest_distance
 
-@profile
 def h_greedy_completion_distance(node):
     tour = node.state[:]
     completion_distance = 0
@@ -369,146 +288,68 @@ def h_greedy_completion_distance(node):
                     closest_city = next_city
                     closest_city_distance = next_city_distance
         tour.append(closest_city)
-        completion_distance += closest_city_distance
-        
+        completion_distance += closest_city_distance        
     completion_distance += distance_matrix[tour[-1]][tour[0]]
     return completion_distance
         
-
-#@profile
-def heuristic_nearest_unvisited_divby_depth(node):
-    closest_distance = math.inf
-    current_city = node.state[-1]
-    for city in range(num_cities):
-        if city not in node.state and distance_matrix[current_city][city] < closest_distance:
-            closest_distance = distance_matrix[current_city][city]
-    if closest_distance == math.inf: # if no unvisited cities found
-        closest_distance = 0
-    return closest_distance# * 100
-    #return closest_distance/(node.depth+1)
-    tour_length = len(node.state)
-    #return closest_distance * (num_cities - tour_length)**10
-    #return closest_distance ** (num_cities - tour_length)#**10
-    #h = time since creation. newer nodes 
-
-def heuristic_time_since_creation(node):
-    return time.time() - node.time_created
-
-
-#def h(z):
-    #return heuristic_nearest_neighbour_distance(z)
-
-#def g(z):
-    #return z.path_cost
-
 class Node:
-    
-    @profile
     def __init__(self, state, path_cost, depth):
         
         self.state = state
         self.path_cost = path_cost
         self.depth = depth
-        
-        
-        #self.absolute_time_created = time.time()
-
-
-        #self.h_time_created = self.absolute_time_created - tour_start_time
-        
-        
-        #self.h = h_nearest_neighbour_distance(self) - self.h_time_created
-        #self.h = num_cities - self.depth
-        self.g = self.path_cost
-        #self.h = -self.g + (num_cities - self.depth)
-        #self.h = heuristic_nearest_unvisited_divby_depth(self)
-        
-        self.h = h_greedy_completion_distance(self)
+        self.g = self.path_cost        
         h_mult = 1
-        self.h *= h_mult
+        self.h = h_greedy_completion_distance(self) * h_mult
         self.f = self.g + self.h
         self.is_goal_state = (self.depth == num_cities-1)
-        #self.print()
-        #input()
-
-    
-    #@property
-    #def h(self):
-        #return heuristic_nearest_neighbour_distance(self)
-        #return heuristic_nearest_unvisited_divby_depth(self)
-        #return heuristic_time_since_creation(self) + heuristic_nearest_neighbour_distance(self)
-
-    #@property
-    #def f(self):
-        #return self.g + self.h
-
-
     
     def print(self):
         print("state: {}, path_cost: {}, depth: {}, h: {}, g: {}, f: {}".format(self.state, self.path_cost, self.depth, self.h, self.g, self.f))
 
-@profile
 def find_tour(start_city = 0):
     tour_start_time = time.time()
     # early goal-node test:
     if num_cities == 1:
         return [start_city], 0
     
+    # initialise data structures:
     root_node = Node(state=[start_city], path_cost=0, depth=0)
-    #root_node.print()
-
-    # initialise fringe data structure:
     fringe = [root_node]
-    #import numpy
-    #fringe = numpy.array(fringe)
-    #max_depth = 110
 
+    rush_start_time = 100
     rush_mode = False
-    rush_start_time = 110
 
     while len(fringe) > 0:
         chosen_node_fringe_index = choose_node(fringe, rush_mode)
         chosen_node = fringe.pop(chosen_node_fringe_index)
-        #chosen_node.print()
         if chosen_node.is_goal_state:
             tour = chosen_node.state
             tour_cost = chosen_node.path_cost
             tour_cost += distance_matrix[tour[-1]][tour[0]]
             tour.append(tour[0])
             return tour, tour_cost
-        #print(fringe)
-        #print(get_next_nodes(fringe, chosen_node, rush_mode))
         fringe += get_next_nodes(fringe, chosen_node, rush_mode)
         if not rush_mode:    
             if time.time() - tour_start_time >= rush_start_time:
-                #clear the fringe and set it to the deepest node; break ties by minimising path cost
-                max_depth = max(fringe, key=operator.attrgetter("depth")).depth
-                deepest_nodes = [node for node in fringe if node.depth == max_depth]
-                best_node = min(deepest_nodes, key=operator.attrgetter("f"))
-                #best_node = min(fringe, key=operator.attrgetter("f"))
+                # purge the fringe of all nodes except that with the lowest f-value
+                best_node = min(fringe, key=operator.attrgetter("f"))
                 fringe = [best_node]
                 rush_mode = True
-                print("Time exceeded - starting rush mode on new root_node:")
-                best_node.print()
-        
-        
-        
-
-        
-            
+                print("Time limit {}s exceeded; starting rush mode on new root_node:".format(rush_start_time))
+                #best_node.print()
+    
     return None, None    
 
-
-#for i in range(num_cities):
 import datetime
 ex_start = datetime.datetime.now()
 tour, tour_length = find_tour()
 ex_end = datetime.datetime.now()
-print("time(hh:mm:ss): ", end="")
+print("EXECUTION TIME: ", end="")
 print(ex_end-ex_start)
-print(tour)
-print(tour_length)
-print()
+#print(tour)
+#print(tour_length)
+#print()
 
 
 
