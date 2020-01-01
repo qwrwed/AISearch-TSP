@@ -4,20 +4,7 @@ Enhancement (/3, /3): How innovative the enhanced versions are compared to the b
 Quality (/10):
     Basic quality (/8): Best tour overall for each city set (but give best tours found from both algorithms A and B)
     Enhanced quality (/2): How well enhanced algorithms perform compared to basic algorithms
-    
-    
-    
-    
-012     1
-017     2
-021     2
-026     2
-042     3
-048     3
-058     3
-175     5
-180     
-535     
+
 
 
 
@@ -47,7 +34,7 @@ File    Tourlength      Time
 026     1741 -> 1659?   0:00:00.185651
 042     1414 -> 1397?   0:00:00.347682
 048     15249 -> 14639? 0:00:00.653152
-058     27664           0:00:08.561164 --> 0:00:01.399622
+058     27664 ->29077?  0:00:08.561164 --> 0:00:01.399622
 175     22091 -> 21917  0:01:44.844717 --> 0:01:05.212416
 180     5460            0:01:44.401506 --> 0:01:51.320510
 535     50239 -> 50236  0:11:38.908758 --> 0:02:27.285713

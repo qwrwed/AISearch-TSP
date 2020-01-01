@@ -1,5 +1,0 @@
-USER = qrgk42 (Zac Robinson)
-ALGORITHM = AS, FILENAME = AISearchfile021
-NUMBER OF CITIES = 21, TOUR LENGTH = 3023
-0,20,19,11,8,5,9,2,18,14,7,16,1,4,15,10,12,6,13,17,3
-NOTE = If no solution has been found after rush_start_time seconds (default 100), a greedy method will be used to complete the tour from the node on the fringe with the lowest f-value
