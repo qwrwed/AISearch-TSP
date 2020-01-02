@@ -293,19 +293,16 @@ class Node:
         self.state = state
         self.path_cost = path_cost
         self.depth = depth
+        self.is_goal_state = (self.depth == num_cities-1)
         self.g = self.path_cost
         self.h = 0
-        self.is_goal_state = (self.depth == num_cities-1)
-
         if not self.is_goal_state: # don't change h from 0 if it's a goal node
             # seperate statements form h to make it easier to measure time taken on each using line_profiler
             self.h += h_greedy_completion_distance(self) 
             self.h += h_shortest_distance_to_next(self)        
-            
             # multiplier for h to increase its influence over g if needed
             h_mult = 1
             self.h *= h_mult
-
         self.f = self.g + self.h
 
     def print(self):
@@ -354,12 +351,12 @@ def find_tour(start_city = 0):
         if chosen_node.is_goal_state:
             final_tour = list(chosen_node.state.tour)
             final_tour_cost = chosen_node.path_cost + distance_matrix[final_tour[-1]][final_tour[0]]
-            final_tour.append(final_tour[0])
             return final_tour, final_tour_cost
         
         # if goal test not passed, add child node(s) of chosen node to fringe
         add_next_nodes(fringe, chosen_node, rush_mode)
 
+# optionally print tours, tour length and execution time:
 verbose = True
 
 ex_start = datetime.datetime.now()

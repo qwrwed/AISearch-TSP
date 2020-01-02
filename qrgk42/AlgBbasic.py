@@ -310,14 +310,15 @@ class Node:
         self.state = state
         self.path_cost = path_cost
         self.depth = depth
+        self.is_goal_state = (self.depth == num_cities-1)
         self.g = self.path_cost
+        self.h = 0
+        self.h += h_shortest_distance_to_next(self)
         # multiplier for h to increase its influence over g if needed
         h_mult = 1
-        #self.h = h_greedy_completion_distance(self) * h_mult
-        self.h = h_shortest_distance_to_next(self)
+        self.h *= h_mult
         self.f = self.g + self.h
-        self.is_goal_state = (self.depth == num_cities-1)
-    
+        
     def print(self):
         s = "state: {}, path_cost: {}, depth: {}, h: {}, g: {}, f: {}"
         print(s.format(self.state, self.path_cost, self.depth, self.h, self.g, self.f))
@@ -357,12 +358,12 @@ def find_tour(start_city = 0):
         # goal test is performed on node creation; if passed, return route and cost of full tour
         if chosen_node.is_goal_state:
             tour = chosen_node.state
-            tour_cost = chosen_node.path_cost
-            tour_cost += distance_matrix[tour[-1]][tour[0]]
+            tour_cost = chosen_node.path_cost + distance_matrix[tour[-1]][tour[0]]
             return tour, tour_cost
         # if goal test not passed, add child node(s) of chosen node to fringe
         fringe += get_next_nodes(fringe, chosen_node, rush_mode)
 
+# optionally print tours, tour length and execution time:
 verbose = True
 
 ex_start = datetime.datetime.now()

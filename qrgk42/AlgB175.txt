@@ -1,0 +1,5 @@
+USER = qrgk42 (Zac Robinson)
+ALGORITHM = AS, FILENAME = AISearchfile175
+NUMBER OF CITIES = 175, TOUR LENGTH = 22080
+0,126,139,159,66,86,3,54,67,93,90,26,68,78,41,5,101,133,146,48,21,25,88,164,70,124,81,134,94,127,125,100,130,136,80,2,131,162,24,22,19,59,171,13,8,14,56,61,11,165,73,118,51,63,112,85,104,168,151,128,122,173,113,17,83,99,46,138,145,82,166,174,52,108,71,75,32,96,160,142,29,119,1,77,158,141,92,117,27,39,103,135,157,23,123,172,106,58,12,10,153,43,53,156,91,143,79,55,6,9,147,144,114,154,16,115,140,137,167,18,155,72,110,89,84,170,28,107,87,116,44,152,120,97,60,62,40,30,34,49,109,38,121,149,33,50,42,148,57,74,64,161,95,163,105,37,150,169,47,15,69,36,20,31,129,102,98,35,65,76,111,7,45,4,132
+NOTE = If no solution found after a set time (default 110s), a greedy method will be used to complete the tour from the node on the fringe with the lowest f-value. *This may result in different tours for the same input depending on the current speed of the computer.*
