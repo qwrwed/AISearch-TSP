@@ -1,9 +1,9 @@
 Sophistication (/10): Highest tariff of the correct (legal tour) basic algorithms
-Correctness (/4): 4 marks if both algorithms produce a legal tour for both secret city sets (~40, ~100), 0 otherwise
+Correctness (/4): 4 marks if both algorithms produce a legal tour for both secret city sets (40, 90), 0 otherwise
 Enhancement (/3, /3): How innovative the enhanced versions are compared to the basic versions
 Quality (/10):
     Basic quality (/8): Best tour overall for each city set (but give best tours found from both algorithms A and B)
-    Enhanced quality (/2): How well enhanced algorithms perform compared to basic algorithms
+    Enhanced quality (/2): How well enhanced algorithms perform compared to basic algorithms *on the secret city sets*
 
 
 
