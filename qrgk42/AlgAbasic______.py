@@ -162,15 +162,15 @@ else:
 ############ YOU NEED TO INCLUDE THE FOLLOWING PARAMETERS:                                 ############
 ############ "my_user_name" = your user-name, e.g., mine is dcs0ias                        ############
 
-my_user_name = "qrgk42"
+my_user_name = "dcs0ias"
 
 ############ "my_first_name" = your first name, e.g., mine is Iain                         ############
 
-my_first_name = "Zac"
+my_first_name = "Iain"
 
 ############ "my_last_name" = your last name, e.g., mine is Stewart                        ############
 
-my_last_name = "Robinson"
+my_last_name = "Stewart"
 
 ############ "alg_code" = the two-digit code that tells me which algorithm you have        ############
 ############ implemented (see the assignment pdf), where the codes are:                    ############
@@ -184,13 +184,13 @@ my_last_name = "Robinson"
 ############    SA = simulated annealing search                                            ############
 ############    GA = genetic algorithm                                                     ############
 
-alg_code = "AS"
+alg_code = "BG"
 
 ############ you can also add a note that will be added to the end of the output file if   ############
 ############ you like, e.g., "in my basic greedy search, I broke ties by always visiting   ############
 ############ the first nearest city found" or leave it empty if you wish                   ############
 
-added_note = "If no solution found after a set time (110s for submitted version), a greedy method will be used to complete the tour from the node on the fringe with the lowest f-value. *This may result in different tours for the same input depending on the current speed of the computer.*"
+added_note = ""
 
 ############ the line below sets up a dictionary of codes and search names (you need do    ############
 ############ nothing unless you implement an alternative algorithm and I give you a code   ############
@@ -210,205 +210,14 @@ codes_and_names = {'BF' : 'brute-force search',
 ############    now the code for your algorithm should begin                               ############
 #######################################################################################################
 
-import math
-import datetime
-import operator
-import heapq
-
-# UTILITY FUNCTIONS
-def get_closest_city_and_distance(tour, unvisited):
-    # initialise current city to last in tour
-    current_city = tour[-1]
-    # enumerate each (next_city, distance_to_next_city), but only for unvisited cities
-    unvisited_cities_and_distances = {(next_city, distance_matrix[current_city][next_city]) for next_city in unvisited}
-    # return closest city-distance pair; break ties by choosing the lowest-indexed city (for consistency, as sets are unordered)
-    return(min(unvisited_cities_and_distances, key=operator.itemgetter(1,0)))
-
-# FRINGE NODE ACQUISITION FUNCTIONS
-def add_all_unvisited_nodes(fringe, chosen_node):
-    # iterate through all cities to add them to fringe
-    unvisited_cities = chosen_node.state.unvisited
-    current_city = chosen_node.state.tour[-1]
-    for new_city in unvisited_cities:
-        new_node_state = state(chosen_node.state.tour + [new_city])
-        new_node_path_cost = chosen_node.path_cost + distance_matrix[current_city][new_city]
-        new_node_depth = chosen_node.depth + 1
-        new_node = Node(new_node_state, new_node_path_cost, new_node_depth)
-        heapq.heappush(fringe, new_node)
-
-def add_nearest_unvisited_node(fringe, chosen_node):
-    # iterate through all cities; add to fringe the unvisited city that is closest to the last city in the current tour
-    tour = list(chosen_node.state.tour)
-    unvisited = set(chosen_node.state.unvisited)
-    closest_city, closest_city_distance = get_closest_city_and_distance(tour, unvisited)
-    new_node_state = state(tour + [closest_city])
-    new_node_path_cost = chosen_node.path_cost + closest_city_distance
-    new_node_depth = chosen_node.depth + 1
-    new_node = Node(new_node_state, new_node_path_cost, new_node_depth)
-    heapq.heappush(fringe, new_node)
-
-def add_next_nodes(fringe, chosen_node, rush_mode=False):
-    # add nodes to fringe via some function dependent on whether rush mode is active
-    if not rush_mode:
-        add_all_unvisited_nodes(fringe, chosen_node)
-    else:
-        add_nearest_unvisited_node(fringe, chosen_node)
-
-# HEURISTIC FUNCTIONS
-def h_shortest_distance_to_next(node, divby_node_num_cities=False):
-    # return the distance of the closest city to the last city in the current tour
-    # (optionally divided by number of cities in the node's state's tour)
-    closest_city_distance = get_closest_city_and_distance(node.state.tour, node.state.unvisited)[1]
-    return closest_city_distance/(len(node.state.tour)**divby_node_num_cities)
-
-def h_greedy_completion_distance(node):
-    # shallow copy state elements so as to not modify them in place, and initialise greedy completion distance
-    tour = list(node.state.tour)
-    unvisited = set(node.state.unvisited)
-    completion_distance = 0
-
-    # iterate until all cities have been added
-    while len(tour) < num_cities:
-        # get closest city and its distance, and update the greedy completion tour and distance with it
-        closest_city, closest_city_distance = get_closest_city_and_distance(tour, unvisited)
-        completion_distance += closest_city_distance
-        tour.append(closest_city)
-        unvisited.remove(closest_city)
-    
-    # add on the distance of final transition from last distinct city to start city and return the final greedy completion distance
-    completion_distance += distance_matrix[tour[-1]][tour[0]]
-    return completion_distance
-
-# CLASS DECLARATIONS
-class state:
-    # node state contains tour (list) and unvisited cities (set)
-    def __init__(self, tour):
-        self.tour = tour
-        self.unvisited = {city for city in range(num_cities) if city not in set(tour)}
-
-class Node:
-
-    def __init__(self, state, path_cost, depth):
-        # initialise values associated with node
-        self.state = state
-        self.path_cost = path_cost
-        self.depth = depth
-        self.is_goal_state = (self.depth == num_cities-1)
-        self.g = self.path_cost
-        self.h = 0
-        if not self.is_goal_state: # don't change h from 0 if it's a goal node
-            # seperate statements form h to make it easier to measure time taken on each using line_profiler
-            self.h += h_greedy_completion_distance(self) 
-            if multi_heuristic:
-                self.h += h_shortest_distance_to_next(self)
-            # multiplier for h to increase its influence over g if needed
-            h_mult = 1
-            self.h *= h_mult
-        self.f = self.g + self.h
-
-    def print(self):
-        s = "state: {}, path_cost: {}, depth: {}, h: {}, g: {}, f: {}"
-        print(s.format(self.state.tour, self.path_cost, self.depth, self.h, self.g, self.f))
-
-    def __lt__(self, other):    
-        if self.f == other.f:
-            if self.depth == other.depth:
-                return self.state.tour < other.state.tour
-            return self.depth > other.depth
-        return self.f < other.f
+        
 
 
-# MAIN FUNCTION
-def find_tour():
 
-    # initialise global variables
-    global multi_heuristic
-    global rush_mode
-    global start_time
-    
-    # early goal-node test:
-    if num_cities == 1:
-        return [0], 0
-    
-    # initialise fringe data structure:
-    fringe = []
-    # the fringe will be a heap organised by the smallest f-value (max depth, then min tour, are used to break ties)
-    for start_city in range(num_cities):
-        heapq.heappush(fringe, Node(state=state([start_city]), path_cost=0, depth=0))
 
-    try:
 
-        while len(fringe) > 0:
 
-            # if not already in rush mode, check if it should be
-            if (not rush_mode) and (time.time() - start_time >= rush_start_time):
-                # clear the fringe of all nodes except current optimal, and set rush flag
-                fringe = [fringe[0]]
-                rush_mode = True
-                print("Time exceeded - starting rush mode on new root_node:")
-                fringe[0].print()
 
-            # pop optimal node from top of fringe minheap
-            chosen_node = heapq.heappop(fringe)
-
-            # goal test is performed on node creation; if passed, return route and cost of full tour
-            if chosen_node.is_goal_state:
-                final_tour = list(chosen_node.state.tour)
-                final_tour_cost = chosen_node.path_cost + distance_matrix[final_tour[-1]][final_tour[0]]
-                return final_tour, final_tour_cost
-            
-            # if goal test not passed, add child node(s) of chosen node to fringe
-            add_next_nodes(fringe, chosen_node, rush_mode)
-    except MemoryError:
-        print("OUT OF MEMORY")
-        print("Fringe is {} nodes long".format(len(fringe)))
-        print("Fringe has size {}".format(sys.getsizeof(fringe)))
-
-# optionally print tours, tour length and execution time:
-verbose = True
-time_limit = False # if True, algorithm must finish within 2 minutes
-
-# record starting time in order to later determine whether algorithm has been running long enough to start rushing
-start_time = time.time()
-
-# set when to stop using A* search in order to return a full tour
-if time_limit:
-    rush_start_time = 110
-    strict_rush_limit = True # if True, both runs have the same time limit; if false, the time limit resets between runs
-else:
-    rush_start_time = 1200
-    strict_rush_limit = False
-
-rush_mode = False
-multi_heuristic = False
-
-ex_start = datetime.datetime.now()
-tour, tour_length = find_tour()
-ex_end = datetime.datetime.now()
-if verbose:
-    print("Execution time for single heuristic: ", end="")
-    print(ex_end-ex_start)
-    print(tour)
-    print(tour_length)
-    print()
-
-if not rush_mode:
-    if not strict_rush_limit:
-        start_time = time.time() # restart rush timer, because the rushed multi-heuristic tends not to get better tours than the 
-    multi_heuristic = True
-    ex_start = datetime.datetime.now()
-    tour2, tour_length2 = find_tour()
-    ex_end = datetime.datetime.now()
-    if verbose:
-        print("Execution time for multi-heuristic: ", end="")
-        print(ex_end-ex_start)
-        print(tour2)
-        print(tour_length2)
-        print()
-    
-
-    if tour_length2 < tour_length:
-        tour, tour_length = tour2, tour_length2
 
 
 
@@ -463,4 +272,17 @@ if flag == "good":
     print("I have successfully written the tour to the output file " + output_file_name + ".")
     
     
+
+
+
+
+
+
+
+
+
+
+
+    
+
 

@@ -1,5 +1,5 @@
 USER = qrgk42 (Zac Robinson)
 ALGORITHM = AS, FILENAME = AISearchfile058
-NUMBER OF CITIES = 58, TOUR LENGTH = 29326
-0,9,44,16,37,6,3,26,7,39,46,29,33,52,15,20,24,12,35,14,25,38,4,51,22,56,30,32,31,50,10,34,55,53,13,23,47,48,43,21,2,57,5,41,27,11,1,49,8,40,17,36,28,18,19,54,45,42
-NOTE = If no solution found after a set time (default 110s), a greedy method will be used to complete the tour from the node on the fringe with the lowest f-value. *This may result in different tours for the same input depending on the current speed of the computer.*
+NUMBER OF CITIES = 58, TOUR LENGTH = 26798
+2,57,9,38,25,4,51,22,56,30,32,31,50,10,34,55,53,13,23,47,48,43,21,5,41,52,27,15,20,33,14,35,12,24,29,46,39,7,26,3,44,45,54,19,18,42,0,16,37,6,28,11,1,17,36,8,40,49
+NOTE = If no solution found after a set time (110s for submitted version), a greedy method will be used to complete the tour from the node on the fringe with the lowest f-value. *This may result in different tours for the same input depending on the current speed of the computer.*

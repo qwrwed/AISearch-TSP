@@ -162,15 +162,15 @@ else:
 ############ YOU NEED TO INCLUDE THE FOLLOWING PARAMETERS:                                 ############
 ############ "my_user_name" = your user-name, e.g., mine is dcs0ias                        ############
 
-my_user_name = "dcs0ias"
+my_user_name = "qrgk42"
 
 ############ "my_first_name" = your first name, e.g., mine is Iain                         ############
 
-my_first_name = "Iain"
+my_first_name = "Zac"
 
 ############ "my_last_name" = your last name, e.g., mine is Stewart                        ############
 
-my_last_name = "Stewart"
+my_last_name = "Robinson"
 
 ############ "alg_code" = the two-digit code that tells me which algorithm you have        ############
 ############ implemented (see the assignment pdf), where the codes are:                    ############
@@ -184,7 +184,7 @@ my_last_name = "Stewart"
 ############    SA = simulated annealing search                                            ############
 ############    GA = genetic algorithm                                                     ############
 
-alg_code = "BG"
+alg_code = "SA"
 
 ############ you can also add a note that will be added to the end of the output file if   ############
 ############ you like, e.g., "in my basic greedy search, I broke ties by always visiting   ############
@@ -202,7 +202,7 @@ codes_and_names = {'BF' : 'brute-force search',
                    'ID' : 'iterative deepening search',
                    'BH' : 'best_first search with heuristic data',
                    'AS' : 'A* search',
-                   'HC' : 'hilling climbing search',
+                   'HC' : 'hill climbing search',
                    'SA' : 'simulated annealing search',
                    'GA' : 'genetic algorithm'}
 
@@ -210,7 +210,301 @@ codes_and_names = {'BF' : 'brute-force search',
 ############    now the code for your algorithm should begin                               ############
 #######################################################################################################
 
+import math
+import datetime
+import operator
+
+# NODE CHOICE FUNCTIONS
+def choose_lowest_f(fringe):
+    return fringe.index(min(fringe, key=operator.attrgetter("f")))
+
+def choose_deepest(fringe):    
+    fringe_sorted = fringe[:]
+    # get element with maximum depth (from second stable sort); break ties using order left over from first sort
+    #  (requires two passes because one sort is reversed and one is not)
+    fringe_sorted.sort(key=operator.attrgetter("path_cost"), reverse=False)
+    fringe_sorted.sort(key=operator.attrgetter("depth"), reverse=True)
+    new_node = fringe_sorted[0]
+    new_node_index = fringe.index(new_node)
+    return new_node_index
+
+def choose_node(fringe, rush_mode=False):        
+    if not rush_mode:
+        return choose_lowest_f(fringe)
+    else:
+        return choose_deepest(fringe)
+
+# FRINGE NODE ACQUISITION FUNCTIONS
+def get_all_unvisited_nodes(fringe, chosen_node):
+    # iterate through all cities to return them to be added to fringe
+    unvisited_cities = [city for city in range(num_cities) if city not in chosen_node.state]
+    current_city_number = chosen_node.state[-1]
+    new_nodes = []
+    for new_city_number in unvisited_cities:
+        new_node_state = chosen_node.state + [new_city_number]
+        new_node_path_cost = chosen_node.path_cost + distance_matrix[current_city_number][new_city_number]
+        new_node_depth = chosen_node.depth + 1
+        new_node = Node(new_node_state, new_node_path_cost, new_node_depth)
+        new_nodes.append(new_node)
+    return new_nodes
+
+def get_nearest_unvisited_node(fringe, chosen_node):
+    # iterate through all cities; return the unvisited city that is closest to the last city in the current tour
+    closest_city = None
+    closest_distance = math.inf
+
+    current_city = chosen_node.state[-1]
+    for city in range(num_cities):
+        if city not in chosen_node.state and distance_matrix[current_city][city] < closest_distance:
+            closest_city = city
+            closest_distance = distance_matrix[current_city][city]
+    new_node_state = chosen_node.state + [closest_city]
+    new_node_path_cost = chosen_node.path_cost + closest_distance
+    new_node_depth = chosen_node.depth + 1
+    new_node = Node(new_node_state, new_node_path_cost, new_node_depth)
+    return [new_node]
+
+def get_next_nodes(fringe, chosen_node, rush_mode=False):
+    # return nodes to add to fringe via some function dependent on whether rush mode is active
+    if not rush_mode:
+        return get_all_unvisited_nodes(fringe, chosen_node)
+    else:
+        return get_nearest_unvisited_node(fringe, chosen_node)
+
+# HEURISTIC FUNCTIONS
+def h_shortest_distance_to_next(node):
+    closest_distance = math.inf
+    current_city = node.state[-1]
+    for city in range(num_cities):
+        if city not in node.state and distance_matrix[current_city][city] < closest_distance:
+            closest_distance = distance_matrix[current_city][city]
+    if closest_distance == math.inf: # if no unvisited cities found
+        closest_distance = 0
+    return closest_distance
+
+def h_greedy_completion_distance(node):
+    # shallow copy state so as to not modify it in place, and initialise greedy completion distance
+    tour = node.state[:]
+    completion_distance = 0
+    # iterate until all cities have been added
+    while len(tour) < num_cities:
+        current_city = tour[-1]
+        closest_city_distance = math.inf
+        for next_city in range(num_cities):
+            if next_city not in tour:
+                next_city_distance = distance_matrix[current_city][next_city]
+                if  next_city_distance < closest_city_distance:
+                    closest_city = next_city
+                    closest_city_distance = next_city_distance
+        tour.append(closest_city)
+        completion_distance += closest_city_distance
+    # add on the distance of final transition from last distinct city to start city and return the final greedy completion distance
+    completion_distance += distance_matrix[tour[-1]][tour[0]]
+    return completion_distance
         
+# CLASS DECLARATIONS
+class Node:
+    
+    def __init__(self, tour, tour_length):
+        # initialise values associated with node
+        self.tour = tour
+        self.tour_length = tour_length
+        self.f = -tour_length # negate f in order to maximise it
+        
+    def print(self):
+        s = "tour: {}, f: {}"
+        print(s.format(self.tour, self.f))
+
+    def __repr__(self):
+        return "<Node tour:{} f:{}>".format(self.tour, self.f)
+
+def greedy_get_initial_node(start_city):
+    # shallow copy state so as to not modify it in place, and initialise greedy completion distance
+    tour = [start_city]
+    f = 0
+    # iterate until all cities have been added
+    while len(tour) < num_cities:
+        current_city = tour[-1]
+        closest_city_distance = math.inf
+        for next_city in range(num_cities):
+            if next_city not in tour:
+                next_city_distance = distance_matrix[current_city][next_city]
+                if  next_city_distance < closest_city_distance:
+                    closest_city = next_city
+                    closest_city_distance = next_city_distance
+        tour.append(closest_city)
+        f += closest_city_distance
+    # add on the distance of final transition from last distinct city to start city and return the final greedy completion distance
+    f += distance_matrix[tour[-1]][tour[0]]
+    return Node(tour, f)
+
+def get_successors_swap(current_node):
+    successors = []
+    for i in range(num_cities):
+        for j in range(i+1, num_cities):
+            succ = list(current_node.tour)
+            succ[i], succ[j] = succ[j], succ[i]
+            succ_f = get_tour_length(succ)
+            #print(succ, succ_f)
+            successors.append(Node(succ, succ_f))
+    return(successors)
+
+def get_successors_reverse(current_node):
+    successors = []
+    for i in range(num_cities):
+        for j in range(i+1, num_cities):
+            succ = list(current_node.tour)
+            succ[i:j] = succ[i:j][::-1]
+            succ_f = get_tour_length(succ)
+            successors.append(Node(succ, succ_f))
+    return(successors)
+
+def get_successors(current_node):
+    #return get_successors_swap(current_node)
+    return get_successors_reverse(current_node) #ENHANCEMENT
+
+def get_tour_length(tour):
+    length = 0
+    for i in range(1, len(tour)):
+        length += distance_matrix[tour[i-1]][tour[i]]
+    length += distance_matrix[tour[-1]][tour[0]]
+    return(length)
+
+def random_get_initial_node():
+    tour = random.sample(range(num_cities), num_cities)
+    tour_length = get_tour_length(tour)
+    return Node(tour, tour_length)
+
+def get_succ_reverse(current_node):
+    i, j = random.sample(range(num_cities), 2)
+    if i > j:
+        i, j = j, i
+    succ_tour = list(current_node.tour)
+    succ_tour[i:j] = succ_tour[i:j][::-1]
+    succ_tour_length = get_tour_length(succ_tour)
+    return(Node(succ_tour, succ_tour_length))
+
+def get_succ(current_node):
+    return get_succ_reverse(current_node)
+
+
+
+# MAIN FUNCTION
+def find_tour(run_number=1):
+    # initialise node
+    potential_initial_nodes = [greedy_get_initial_node(start_city) for start_city in range(num_cities)]
+    current = min(potential_initial_nodes, key=operator.attrgetter("tour_length"))
+    #current = greedy_get_initial_node(start_city)
+    #current = random_get_initial_node()
+    #best = current
+    print("INITIAL NODE: ", current)
+    #T_0 = 1*10**200
+    T_0 = 1000
+    #eps = 1*10**-1
+    eps = 0
+    num_iterations = 100000
+    schedule_exp = [T_0 * 0.95**t for t in range(num_iterations)]
+    schedule_fast = [T_0/(t+1) for t in range(num_iterations)]
+    schedule_boltz = [T_0/math.log(t+2) for t in range(num_iterations)]
+
+    schedule = schedule_exp
+    #t = 0
+    #while True:
+    #T = T_0
+    for t in range(num_iterations):
+        #print("============")
+        #print("time t =",t)
+        #T = T_0 * 0.95**t
+        #T = T_0/(t+1)
+        #print("temp T =", T)
+        T = schedule[t]
+        #print(T)
+        succ = get_succ(current)
+        dE = succ.f - current.f
+        #print("dE =", dE)
+        #print("T =", T)
+        #print("dE/T =", dE/T)
+        if T > eps:
+            if dE >= 0:
+                probability = 1
+            else:
+                probability = math.e**(dE/T)
+        else:
+            
+            #print(t, T,"HC")
+            #print(current)
+            #input()
+            probability = int(succ.f > current.f)
+        
+        if random.random() < probability:
+            current = succ
+        #T *= 0.95
+        #if current.f > best.f:
+            #best = current
+    print("Attempt {} solution: {}\n".format(run_number, current))
+    return current
+    #return current.tour, current.tour_length
+    #return best.tour, best.tour_length
+
+        #if T <= eps:
+            #print("t =",t)
+            #print("T <", eps, "; returning")
+            #return current.tour, current.tour_length
+        #else:
+            #choose random successor state
+            #successors = get_successors(current)
+            #succ = successors[random.randint(0, num_cities-1)]
+            #succ_tour = random.sample(current.tour, len(current.tour))
+            #succ = get_succ(current)
+            #current_old = Node(current.tour,  current.tour_length)
+            #succ_old = Node(succ_tour, succ_tour_length)
+            #print("current:       ", current)
+            #print("potential succ:", succ)
+            #dE = succ.f - current.f
+            #print("dE = ", dE)
+            #if dE >= 0:
+                #print("***dE >= 0: updating current to succ***")
+                #current = succ
+            #else:
+                #probability = math.e**(dE/T)
+                #print("probability = e^({}/{})".format(dE, T))
+                #print("!!! de < 0: {}% chance of updating current to succ!!!".format(probability*100))
+                #if random.random() < probability:
+                    #print("()()()doing it anyway()()()")
+                    #current = succ
+        #t += 1
+        #print("============")
+        #input()
+    """
+    for _ in range(num_passes):
+        
+        best_successor = min(successors, key=operator.attrgetter("f"))
+        if best_successor.f > current_node.f:
+            print("***f increased from {} to {}***".format(current_node.f, best_successor.f))
+            current_node = best_successor
+        else:
+            print("***no better successor found***")
+            break
+    return current_node.tour, current_node.tour_length"""
+    
+
+# optionally print tours, tour length and execution time:
+verbose = True
+
+ex_start = datetime.datetime.now()
+#tour, tour_length = find_tour()
+runs = 10
+print("\nSIMULATED ANNEALING, {} RUN(S):\n".format(runs))
+solutions = [find_tour(i+1) for i in range(runs)]
+ex_end = datetime.datetime.now()
+opt = min(solutions, key=operator.attrgetter("tour_length"))
+tour, tour_length = opt.tour, opt.tour_length
+if verbose:
+    print("Execution time: ", end="")
+    print(ex_end-ex_start)
+    print(tour)
+    print(tour_length)
+    print()        
 
 
 

@@ -190,7 +190,7 @@ alg_code = "AS"
 ############ you like, e.g., "in my basic greedy search, I broke ties by always visiting   ############
 ############ the first nearest city found" or leave it empty if you wish                   ############
 
-added_note = "If no solution found after a set time (default 110s), a greedy method will be used to complete the tour from the node on the fringe with the lowest f-value. *This may result in different tours for the same input depending on the current speed of the computer.*"
+added_note = "If no solution found after a set time (110s for submitted version), a greedy method will be used to complete the tour from the node on the fringe with the lowest f-value. *This may result in different tours for the same input depending on the current speed of the computer.*"
 
 ############ the line below sets up a dictionary of codes and search names (you need do    ############
 ############ nothing unless you implement an alternative algorithm and I give you a code   ############
@@ -336,7 +336,7 @@ def find_tour(start_city = 0):
     fringe = [root_node]
 
     # set when to stop using A* search in order to return a full tour
-    rush_start_time = 110
+    rush_start_time = 1200
     rush_mode = False
 
     while len(fringe) > 0:
