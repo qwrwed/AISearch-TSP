@@ -274,31 +274,6 @@ def get_successor(current_node):
     succ_tour_length = get_tour_length(succ_tour)
     return(Node(succ_tour, succ_tour_length))
 
-def get_hillclimb_successors(current_node):
-    successors = []
-    for i in range(num_cities):
-        for j in range(i+1, num_cities):
-            succ = list(current_node.tour)
-            succ[i:j] = succ[i:j][::-1]
-            succ_f = get_tour_length(succ)
-            successors.append(Node(succ, succ_f))
-    return(successors)
-
-def hillclimb(start_node, max_passes = 100):
-    # initialise node
-    current_node = start_node
-    print("INITIAL NODE FOR HILL CLIMBING:", current_node)
-    for _ in range(max_passes):
-        successors = get_hillclimb_successors(current_node)
-        best_successor = min(successors, key=operator.attrgetter("f"))
-        if best_successor.f < current_node.f:
-            print("***f decreased from {} to {}***".format(current_node.f, best_successor.f))
-            current_node = best_successor
-        else:
-            print("***no better successor found***")
-            break
-    return current_node
-
 def get_initial_node():
     if num_cities < 200:
         potential_initial_nodes = [greedy_get_initial_node(start_city) for start_city in range(num_cities)]
@@ -314,7 +289,7 @@ def find_tour(run_number=1, initial_node = None):
     else:
         current = initial_node
         
-    print(initial_node)
+    #print(initial_node)
     # set parameters
     T_0 = 100
     eps = 0 # epsilon (lower temperature limit)
@@ -352,17 +327,13 @@ ex_start = datetime.datetime.now()
 initial_node = get_initial_node()
 #tour, tour_length = find_tour()
 if num_cities < 200:
-    runs = 20
-    do_hillclimb = True
+    runs = 10
 else:
     # different running conditions for large amount of cities
-    runs = 1
-    do_hillclimb = True
+    runs = 5
 
 print("\nSIMULATED ANNEALING, {} RUN(S):\n".format(runs))
 solutions = [find_tour(i+1, initial_node) for i in range(runs)]
-if do_hillclimb:
-    solutions.append(hillclimb(initial_node))
 ex_end = datetime.datetime.now()
 opt = min(solutions, key=operator.attrgetter("tour_length"))
 tour, tour_length = opt.tour, opt.tour_length
