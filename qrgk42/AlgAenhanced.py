@@ -162,15 +162,15 @@ else:
 ############ YOU NEED TO INCLUDE THE FOLLOWING PARAMETERS:                                 ############
 ############ "my_user_name" = your user-name, e.g., mine is dcs0ias                        ############
 
-my_user_name = "dcs0ias"
+my_user_name = "qrgk42"
 
 ############ "my_first_name" = your first name, e.g., mine is Iain                         ############
 
-my_first_name = "Iain"
+my_first_name = "Zac"
 
 ############ "my_last_name" = your last name, e.g., mine is Stewart                        ############
 
-my_last_name = "Stewart"
+my_last_name = "Robinson"
 
 ############ "alg_code" = the two-digit code that tells me which algorithm you have        ############
 ############ implemented (see the assignment pdf), where the codes are:                    ############
@@ -184,7 +184,7 @@ my_last_name = "Stewart"
 ############    SA = simulated annealing search                                            ############
 ############    GA = genetic algorithm                                                     ############
 
-alg_code = "BG"
+alg_code = "SA"
 
 ############ you can also add a note that will be added to the end of the output file if   ############
 ############ you like, e.g., "in my basic greedy search, I broke ties by always visiting   ############
@@ -202,7 +202,7 @@ codes_and_names = {'BF' : 'brute-force search',
                    'ID' : 'iterative deepening search',
                    'BH' : 'best_first search with heuristic data',
                    'AS' : 'A* search',
-                   'HC' : 'hilling climbing search',
+                   'HC' : 'hill climbing search',
                    'SA' : 'simulated annealing search',
                    'GA' : 'genetic algorithm'}
 
@@ -210,15 +210,168 @@ codes_and_names = {'BF' : 'brute-force search',
 ############    now the code for your algorithm should begin                               ############
 #######################################################################################################
 
+import math
+import datetime
+import operator
+
+class Node:
+    
+    def __init__(self, tour, tour_length):
+        # initialise values associated with node
+        self.tour = tour
+        self.f = self.tour_length = tour_length
+
+    def __repr__(self):
+        return "<Node tour:{} f:{}>".format(self.tour, self.f)
+
+def greedy_get_initial_node(start_city):
+    # shallow copy state so as to not modify it in place, and initialise greedy completion distance
+    tour = [start_city]
+    f = 0
+    # iterate until all cities have been added
+    while len(tour) < num_cities:
+        current_city = tour[-1]
+        closest_city_distance = math.inf
+        for next_city in range(num_cities):
+            if next_city not in tour:
+                next_city_distance = distance_matrix[current_city][next_city]
+                if  next_city_distance < closest_city_distance:
+                    closest_city = next_city
+                    closest_city_distance = next_city_distance
+        tour.append(closest_city)
+        f += closest_city_distance
+    # add on the distance of final transition from last distinct city to start city and return the final greedy completion distance
+    f += distance_matrix[tour[-1]][tour[0]]
+    return Node(tour, f)
+
+def get_tour_length(tour):
+    length = 0
+    #distances = [distance_matrix[tour[i-1]][tour[i]] for i in range(1, len(tour))]
+    length = sum([distance_matrix[tour[i-1]][tour[i]] for i in range(1, len(tour))])
+    #for i in range(1, len(tour)):
+        #length += distance_matrix[tour[i-1]][tour[i]]
+    length += distance_matrix[tour[-1]][tour[0]]
+    return(length)
+
+def random_get_initial_node():
+    tour = random.sample(range(num_cities), num_cities)
+    tour_length = get_tour_length(tour)
+    return Node(tour, tour_length)
+
+def get_successor(current_node):
+    # get successor by reversing random slice of list
+    i = int(random.random() * num_cities)
+    j = int(random.random() * num_cities)
+    
+    # ensure i != j
+    while j == i:
+        j = int(random.random() * num_cities)
+    # ensure i < j
+    if i > j:
+        i, j = j, i
+    succ_tour = list(current_node.tour)
+    succ_tour[i:j] = succ_tour[i:j][::-1]
+    succ_tour_length = get_tour_length(succ_tour)
+    return(Node(succ_tour, succ_tour_length))
+
+def get_hillclimb_successors(current_node):
+    successors = []
+    for i in range(num_cities):
+        for j in range(i+1, num_cities):
+            succ = list(current_node.tour)
+            succ[i:j] = succ[i:j][::-1]
+            succ_f = get_tour_length(succ)
+            successors.append(Node(succ, succ_f))
+    return(successors)
+
+def hillclimb(start_node, max_passes = 100):
+    # initialise node
+    current_node = start_node
+    print("INITIAL NODE FOR HILL CLIMBING:", current_node)
+    for _ in range(max_passes):
+        successors = get_hillclimb_successors(current_node)
+        best_successor = min(successors, key=operator.attrgetter("f"))
+        if best_successor.f < current_node.f:
+            print("***f decreased from {} to {}***".format(current_node.f, best_successor.f))
+            current_node = best_successor
+        else:
+            print("***no better successor found***")
+            break
+    return current_node
+
+def get_initial_node():
+    if num_cities < 200:
+        potential_initial_nodes = [greedy_get_initial_node(start_city) for start_city in range(num_cities)]
+        return min(potential_initial_nodes, key=operator.attrgetter("tour_length"))
+    else:
+        return greedy_get_initial_node(0)
+
+# MAIN FUNCTION
+def find_tour(run_number=1, initial_node = None):
+    # initialise node
+    if initial_node == None:
+        current = get_initial_node()
+    else:
+        current = initial_node
         
+    print(initial_node)
+    # set parameters
+    T_0 = 100
+    eps = 0 # epsilon (lower temperature limit)
+    num_iterations = 100000 # fixed; no early termination so climbing can still happen after epsilon limit is reached
+    schedule = [T_0 * 0.95**t for t in range(num_iterations)]
+    #schedule = [T_0/(t+1) for t in range(num_iterations)]
+    #schedule = [T_0/math.log(t+2) for t in range(num_iterations)]
 
+    for t in range(num_iterations):
+        T = schedule[t]
+        succ = get_successor(current)
+        dE = current.f - succ.f # difference in energy (= difference in tour length)
+        if T > eps:
+            if dE >= 0:
+                # always go to successor if better
+                probability = 1
+            else:
+                # possibly go to successor if worse
+                probability = math.e**(dE/T)
+        else:
+            # temperature has dropped below limit (epsilon), so only go to better successors
+            probability = int(succ.f < current.f)
+            
+        # decide whether to go to successor
+        if random.random() < probability:
+            current = succ
+        
+    print("RUN {} SOLUTION: {}\n".format(run_number, current))
+    return current
+    
+# optionally print tours, tour length and execution time:
+verbose = True
 
+ex_start = datetime.datetime.now()
+initial_node = get_initial_node()
+#tour, tour_length = find_tour()
+if num_cities < 200:
+    runs = 20
+    do_hillclimb = True
+else:
+    # different running conditions for large amount of cities
+    runs = 1
+    do_hillclimb = True
 
-
-
-
-
-
+print("\nSIMULATED ANNEALING, {} RUN(S):\n".format(runs))
+solutions = [find_tour(i+1, initial_node) for i in range(runs)]
+if do_hillclimb:
+    solutions.append(hillclimb(initial_node))
+ex_end = datetime.datetime.now()
+opt = min(solutions, key=operator.attrgetter("tour_length"))
+tour, tour_length = opt.tour, opt.tour_length
+if verbose:
+    print("Execution time: ", end="")
+    print(ex_end-ex_start)
+    print(tour)
+    print(tour_length)
+    print()        
 
 
 #######################################################################################################

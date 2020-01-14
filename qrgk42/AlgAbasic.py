@@ -220,11 +220,7 @@ class Node:
         # initialise values associated with node
         self.tour = tour
         self.f = self.tour_length = tour_length
-        
-    def print(self):
-        s = "tour: {}, f: {}"
-        print(s.format(self.tour, self.f))
-
+    
     def __repr__(self):
         return "<Node tour:{} f:{}>".format(self.tour, self.f)
 
@@ -241,6 +237,7 @@ def random_get_initial_node():
     return Node(tour, tour_length)
 
 def get_successor(current_node):
+    # get successor by switching two random cities
     i, j = random.sample(range(num_cities), 2)
     succ_tour = list(current_node.tour)
     succ_tour[i], succ_tour[j] = succ_tour[j], succ_tour[i]
@@ -251,16 +248,13 @@ def get_successor(current_node):
 def find_tour():
     # initialise node
     current = random_get_initial_node()
-    print("INITIAL NODE: ", current)
+    #print("INITIAL NODE: ", current)
     
     # set parameters
     T_0 = 1000
     eps = 0 # epsilon (lower temperature limit)
     num_iterations = 100000 # fixed; no early termination so climbing can still happen after epsilon limit is reached
-    schedule_exp = [T_0 * 0.95**t for t in range(num_iterations)]
-    #schedule_fast = [T_0/(t+1) for t in range(num_iterations)]
-    #schedule_boltz = [T_0/math.log(t+2) for t in range(num_iterations)] # alternative schedules
-    schedule = schedule_exp
+    schedule = [T_0 - t for t in range(num_iterations)]
 
     for t in range(num_iterations):
         T = schedule[t]
