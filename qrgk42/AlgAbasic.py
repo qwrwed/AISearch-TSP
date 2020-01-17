@@ -278,7 +278,7 @@ def find_tour():
     return current.tour, current.tour_length
 
 # optionally print tours, tour length and execution time:
-verbose = True
+verbose = False
 
 ex_start = datetime.datetime.now()
 tour, tour_length = find_tour()

@@ -325,6 +325,7 @@ def find_tour():
     global multi_heuristic
     global rush_mode
     global start_time
+    global verbose
     
     # early goal-node test:
     if num_cities == 1:
@@ -336,37 +337,32 @@ def find_tour():
     for start_city in range(num_cities):
         heapq.heappush(fringe, Node(state=state([start_city]), path_cost=0, depth=0))
 
-    try:
+    while len(fringe) > 0:
 
-        while len(fringe) > 0:
-
-            # if not already in rush mode, check if it should be
-            if (not rush_mode) and (time.time() - start_time >= rush_start_time):
-                # clear the fringe of all nodes except current optimal, and set rush flag
-                fringe = [fringe[0]]
-                rush_mode = True
+        # if not already in rush mode, check if it should be
+        if (not rush_mode) and (time.time() - start_time >= rush_start_time):
+            # clear the fringe of all nodes except current optimal, and set rush flag
+            fringe = [fringe[0]]
+            rush_mode = True
+            if verbose:
                 print("Time exceeded - starting rush mode on new root_node:")
                 fringe[0].print()
 
-            # pop optimal node from top of fringe minheap
-            chosen_node = heapq.heappop(fringe)
+        # pop optimal node from top of fringe minheap
+        chosen_node = heapq.heappop(fringe)
 
-            # goal test is performed on node creation; if passed, return route and cost of full tour
-            if chosen_node.is_goal_state:
-                final_tour = list(chosen_node.state.tour)
-                final_tour_cost = chosen_node.path_cost + distance_matrix[final_tour[-1]][final_tour[0]]
-                return final_tour, final_tour_cost
-            
-            # if goal test not passed, add child node(s) of chosen node to fringe
-            add_next_nodes(fringe, chosen_node, rush_mode)
-    except MemoryError:
-        print("OUT OF MEMORY")
-        print("Fringe is {} nodes long".format(len(fringe)))
-        print("Fringe has size {}".format(sys.getsizeof(fringe)))
+        # goal test is performed on node creation; if passed, return route and cost of full tour
+        if chosen_node.is_goal_state:
+            final_tour = list(chosen_node.state.tour)
+            final_tour_cost = chosen_node.path_cost + distance_matrix[final_tour[-1]][final_tour[0]]
+            return final_tour, final_tour_cost
+        
+        # if goal test not passed, add child node(s) of chosen node to fringe
+        add_next_nodes(fringe, chosen_node, rush_mode)
 
 # optionally print tours, tour length and execution time:
-verbose = True
-time_limit = False # if True, algorithm must finish within 2 minutes
+verbose = False
+time_limit = True # if True, algorithm must finish within 2 minutes
 
 # record starting time in order to later determine whether algorithm has been running long enough to start rushing
 start_time = time.time()

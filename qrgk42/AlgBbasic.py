@@ -324,6 +324,7 @@ class Node:
         print(s.format(self.state, self.path_cost, self.depth, self.h, self.g, self.f))
 # MAIN FUNCTION
 def find_tour(start_city = 0):
+    global verbose
     # record starting time in order to later determine whether algorithm has been running long enough to start rushing
     tour_start_time = time.time()
     
@@ -336,7 +337,7 @@ def find_tour(start_city = 0):
     fringe = [root_node]
 
     # set when to stop using A* search in order to return a full tour
-    rush_start_time = 1200
+    rush_start_time = 110
     rush_mode = False
 
     while len(fringe) > 0:
@@ -348,8 +349,9 @@ def find_tour(start_city = 0):
                 best_node = min(fringe, key=operator.attrgetter("f"))
                 fringe = [best_node]
                 rush_mode = True
-                print("Time limit {}s exceeded; starting rush mode on new root_node:".format(rush_start_time))
-                best_node.print()
+                if verbose:
+                    print("Time limit {}s exceeded; starting rush mode on new root_node:".format(rush_start_time))
+                    best_node.print()
 
         # pop optimal node from fringe list
         chosen_node_fringe_index = choose_node(fringe, rush_mode)
@@ -364,7 +366,7 @@ def find_tour(start_city = 0):
         fringe += get_next_nodes(fringe, chosen_node, rush_mode)
 
 # optionally print tours, tour length and execution time:
-verbose = True
+verbose = False
 
 ex_start = datetime.datetime.now()
 tour, tour_length = find_tour()

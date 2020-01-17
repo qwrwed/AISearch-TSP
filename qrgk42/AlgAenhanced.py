@@ -283,6 +283,7 @@ def get_initial_node():
 
 # MAIN FUNCTION
 def find_tour(run_number=1, initial_node = None):
+    global verbose
     # initialise node
     if initial_node == None:
         current = get_initial_node()
@@ -317,11 +318,13 @@ def find_tour(run_number=1, initial_node = None):
         if random.random() < probability:
             current = succ
         
-    print("RUN {} SOLUTION: {}\n".format(run_number, current))
+    
+    if verbose:
+        print("RUN {} SOLUTION: {}\n".format(run_number, current))
     return current
     
 # optionally print tours, tour length and execution time:
-verbose = True
+verbose = False
 
 ex_start = datetime.datetime.now()
 initial_node = get_initial_node()
@@ -332,7 +335,9 @@ else:
     # different running conditions for large amount of cities
     runs = 5
 
-print("\nSIMULATED ANNEALING, {} RUN(S):\n".format(runs))
+if verbose:
+    print("\nSIMULATED ANNEALING, {} RUN(S):\n".format(runs))
+
 solutions = [find_tour(i+1, initial_node) for i in range(runs)]
 ex_end = datetime.datetime.now()
 opt = min(solutions, key=operator.attrgetter("tour_length"))
